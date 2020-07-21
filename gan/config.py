@@ -18,7 +18,9 @@ def parse_args():
     parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
     parser.add_argument('--img_size', type=int, default=28, help='image size')
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
-    parser.add_argument('--sample_interval', type=int, default=400, help='interval between image samples')
+    parser.add_argument('--sample_interval', type=int, default=500, help='interval between image samples')
+    parser.add_argument('--checkpoint_interval', type=int, default=10000, help='interval between saving models')
+    parser.add_argument('--load_model', type=str, default='checkpoints/generator_done.pth', help='model to load')
 
     opt = parser.parse_args()
     print(opt)

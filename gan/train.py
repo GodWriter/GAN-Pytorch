@@ -13,7 +13,10 @@ from model import Generator, Discriminator
 
 def train():
     os.makedirs("images", exist_ok=True)
+    os.makedirs("checkpoints", exist_ok=True)
+
     cuda = True if torch.cuda.is_available() else False
+    Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
     # get configs and dataloader
     opt = parse_args()
@@ -34,9 +37,6 @@ def train():
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-
-
-    Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
     for epoch in range(opt.epochs):
         for i, (imgs, _) in enumerate(data_loader):
@@ -78,6 +78,10 @@ def train():
             d_loss.backward()
             optimizer_D.step()
 
+            # ------------------
+            # Log Information
+            # ------------------
+
             print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" %
                   (epoch, opt.epochs, i, len(data_loader), d_loss.item(), g_loss.item()))
 
@@ -85,7 +89,11 @@ def train():
             if batches_done % opt.sample_interval == 0:
                 save_image(gen_imgs.data[:25], "images/%d.png" % batches_done, nrow=5, normalize=True)
 
-    print("Training Done!")
+            if batches_done % opt.checkpoint_interval == 0:
+                torch.save(generator.state_dict(), "checkpoints/generator_%d.pth" % epoch)
+                # torch.save(discriminator.state_dict(), "checkpoints/discriminator_%d.pth" % epoch)
+
+    print("Training Process has been Done!")
 
 
 if __name__ == '__main__':
