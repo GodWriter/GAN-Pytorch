@@ -15,12 +15,14 @@ def mnist_loader(opt):
                                     transforms.ToTensor(),
                                     transforms.Normalize([0.5], [0.5])])
 
+    mnist_train = datasets.MNIST(data_path,
+                                 train=True,
+                                 download=True,
+                                 transform=transform)
+
     # create the data_loader
-    data_loader = DataLoader(datasets.MNIST(data_path,
-                                            train=True,
-                                            download=True,
-                                            transform=transform,
-                                            batch_size=opt.batch_size,
-                                            shuffle=True))
+    data_loader = DataLoader(mnist_train,
+                             batch_size=opt.batch_size,
+                             shuffle=True)
 
     return data_loader
