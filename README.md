@@ -51,7 +51,7 @@ $ python infer.py
 #### WGAN-GP
 
 Compared with WGAN, WGAN has the following modification
-* Modify the object function and add the second gradient punishment
+* Modify the object function and add the second gradient penalty
 * Batch Normalization can't be used in the discriminator
 
 To be continued~~~

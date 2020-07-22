@@ -37,10 +37,6 @@ def train():
     for epoch in range(opt.epochs):
         for i, (imgs, _) in enumerate(data_loader):
 
-            # Adversarial ground truths
-            valid = Variable(Tensor(imgs.size(0), 1).fill_(1.0), requires_grad=False)
-            fake = Variable(Tensor(imgs.size(0), 1).fill_(0.0), requires_grad=False)
-
             # Configure input
             z = Variable(Tensor(np.random.normal(0, 1, (imgs.shape[0], opt.latent_dim))))
             gen_imgs = generator(z)
