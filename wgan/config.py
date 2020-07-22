@@ -9,9 +9,9 @@ def parse_args():
     desc = "Pytorch implementation of WGAN"
     parser = argparse.ArgumentParser(description=desc)
 
-    parser.add_argument('--epochs', type=int, default=100, help="training epochs")
+    parser.add_argument('--epochs', type=int, default=200, help="training epochs")
     parser.add_argument('--batch_size', type=int, default=64, help='batch size')
-    parser.add_argument('--lr', type=float, default=0.0002, help='adam: learning rate')
+    parser.add_argument('--lr', type=float, default=0.00005, help='learning rate')
     parser.add_argument('--n_cpu', type=int, default=1, help='number of cpu threads during batch generation')
     parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
     parser.add_argument('--img_size', type=int, default=28, help='image size')
