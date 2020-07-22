@@ -1,2 +1,4 @@
 .idea
 gan/data
+wgan/data
+wgan-gp/data

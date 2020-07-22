@@ -4,6 +4,15 @@ Pytorch implementations of Generative Adversarial Network algorithms.
 
 * GAN
 * WGAN
+* WGAN-GP
+* DCGAN
+* CGAN
+* Context-GAN
+* Pix2Pix
+* CycleGAN
+* StarGAN
+* Unit
+* MUnit
 
 &emsp;
 
@@ -53,5 +62,21 @@ $ python infer.py
 Compared with WGAN, WGAN has the following modification
 * Modify the object function and add the second gradient penalty
 * Batch Normalization can't be used in the discriminator
+* When choosing optimizer, note that Adam can be better.
 
+|             Epoch(1-100)             |             Epoch(101-200)             |
+| :------------------------------: | :------------------------------: |
+| ![mnist1](wgan-gp/images/mnist1.gif) | ![mnist2](wgan-gp/images/mnist2.gif) |
+
+##### Run Example
+
+```bash
+$ cd wgan-gp
+$ python train.py
+$ python infer.py
+```
+
+&emsp;
+
+#### DCGAN
 To be continued~~~
