@@ -5,15 +5,13 @@ Pytorch implementations of Generative Adversarial Network algorithms.
 * GAN
 * WGAN
 
-
+&emsp;
 
 #### GAN
 
 |             Example1             |             Example2             |
 | :------------------------------: | :------------------------------: |
 | ![mnist1](gan/images/mnist1.gif) | ![mnist2](gan/images/mnist2.gif) |
-
-
 
 ##### Run Example
 
@@ -23,8 +21,14 @@ $ python train.py
 $ python infer.py
 ```
 
-
+&emsp;
 
 ##### WGAN
 
-to be continued......
+Compared with GAN, WGAN has the following modification
+
+* the sigmoid function employed in last layer is removed.
+* the loss function of generator and discriminator don't need the log operation.
+* clipping the absolute value of  parameters of the discriminator to a constant $c$ after updating the discriminator.
+* Note that $RMSProp$, $SGD$ can be better.
+
