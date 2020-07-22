@@ -77,7 +77,7 @@ def train():
 
             if i % opt.n_critic == 0:
                 optimizer_G.zero_grad()
-                g_loss = -torch.mean(discriminator(gen_imgs))
+                g_loss = -torch.mean(discriminator(generator(z)))
 
                 g_loss.backward()
                 optimizer_G.step()
