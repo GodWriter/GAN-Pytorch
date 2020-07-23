@@ -105,7 +105,9 @@ $ python infer.py
 Compared with GAN, CGAN embeds label into the images in two places
 * the input of generator, so the input form is [z, label]
 * the input of discriminator, so the input form is [imgs, label]
-* BCELoss is replaced with MSELoss
+* the total model is trained in the from of lsgan
+  * the last layer of discriminator is linear
+  * cross entropy is replaced with the mean squared error
 * There is an confusing problem that during the infer phase
   * Good results can be obtain under the condition range from 0 to 9 while [1, 1, ..., 1] will get bad results.
   * Random digit condition can also obtain good results
