@@ -16,7 +16,7 @@ def parse_args():
     parser.add_argument('--b2', type=float, default=0.999, help='adam: decay of first order momentum of gradient')
     parser.add_argument('--n_cpu', type=int, default=1, help='number of cpu threads during batch generation')
     parser.add_argument('--latent_dim', type=int, default=100, help='dimensionality of the latent space')
-    parser.add_argument('--img_size', type=int, default=28, help='image size')
+    parser.add_argument('--img_size', type=int, default=32, help='image size')
     parser.add_argument('--channels', type=int, default=1, help='number of image channels')
     parser.add_argument('--n_critic', type=int, default=5, help='number of training steps for discriminator per iter')
     parser.add_argument('--sample_interval', type=int, default=500, help='interval between image samples')
