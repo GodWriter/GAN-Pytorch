@@ -113,7 +113,7 @@ Compared with GAN, CGAN embeds label into the images in two places
 
 |             Epoch(1-100)             |             Epoch(101-200)             |
 | :------------------------------: | :------------------------------: |
-| ![mnist1](cgan/images/mnist1.gif) | ![mnist2](cgan/images/mnist2.gif) |
+| ![mnist1](cgan/images/mnist1.gif)| ![mnist2](cgan/images/mnist2.gif) |
 
 ##### Run Example
 
