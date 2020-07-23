@@ -59,7 +59,7 @@ $ python infer.py
 
 #### WGAN-GP
 
-Compared with WGAN, WGAN has the following modification
+Compared with WGAN, WGAN-GP has the following modification
 * Modify the object function and add the second gradient penalty
 * Batch Normalization can't be used in the discriminator
 * When choosing optimizer, note that Adam can be better.
@@ -79,4 +79,9 @@ $ python infer.py
 &emsp;
 
 #### DCGAN
-To be continued~~~
+Compared with GAN, DCGAN has the following modifications
+* Replace the pooling layer with convolution or deconvolution.
+* Insert the batch normalization to the generator and discriminator.
+* Replace the fc layer with global pooling layer
+* The output layer of generator uses the Tanh function, the others Relu
+* All the layers of discriminator use the LeakyRelu function
