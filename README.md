@@ -85,3 +85,21 @@ Compared with GAN, DCGAN has the following modifications
 * Replace the fc layer with global pooling layer
 * The output layer of generator uses the Tanh function, the others Relu
 * All the layers of discriminator use the LeakyRelu function
+* Note that DCGAN needs more training time
+
+|             Epoch(1-100)             |             Epoch(101-200)             |
+| :------------------------------: | :------------------------------: |
+| ![mnist1](dcgan/images/mnist1.gif) | ![mnist2](dcgan/images/mnist2.gif) |
+
+##### Run Example
+
+```bash
+$ cd dcgan
+$ python train.py
+$ python infer.py
+```
+
+&emsp;
+
+#### CGAN
+To be continued~~~
