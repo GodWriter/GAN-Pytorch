@@ -4,21 +4,12 @@ import numpy as np
 import torch.nn as nn
 
 
-def weights_init_normal(m):
-    classname = m.__class__.__name__
-    if classname.find("Conv") != -1:
-        nn.init.normal_(m.weight.data, 0.0, 0.02)
-    elif classname.find("BatchNorm2d") != -1:
-        nn.init.normal_(m.weight.data, 1.0, 0.02)
-        nn.init.constant_(m.bias.data, 0.0)
-
-
 class Generator(nn.Module):
     def __init__(self, opt):
         super(Generator, self).__init__()
 
-        self.label_emb = nn.Embedding(opt.n_classes, opt.n_classes)
         self.img_shape = (opt.channels, opt.img_size, opt.img_size)
+        self.label_embedding = nn.Embedding(opt.n_classes, opt.n_classes)
 
         def block(in_feat, out_feat, normalize=True):
             layers = [nn.Linear(in_feat, out_feat)]
@@ -35,33 +26,31 @@ class Generator(nn.Module):
                                    nn.Tanh())
 
     def forward(self, z, labels):
-        gen_input = torch.cat((self.label_emb(labels), z), -1)
+        gen_input = torch.cat((z, self.label_embedding(labels)), -1)
+        img = self.model(gen_input)
+        img = img.view(img.size(0), *self.img_shape)
+        return img
 
 
 class Discriminator(nn.Module):
     def __init__(self, opt):
         super(Discriminator, self).__init__()
 
-        self.ds_size = opt.img_size // 2 ** 4
+        self.img_shape = (opt.channels, opt.img_size, opt.img_size)
+        self.label_embedding = nn.Embedding(opt.n_classes, opt.n_classes)
 
-        def discriminator_block(in_filters, out_filters, bn=True):
-            block = [nn.Conv2d(in_filters, out_filters, 3, 2, 1),
-                     nn.LeakyReLU(0.2, inplace=True),
-                     nn.Dropout2d(0.25)]
-            if bn:
-                block.append(nn.BatchNorm2d(out_filters, 0.8))
-            return block
+        self.model = nn.Sequential(nn.Linear(opt.n_classes + int(np.prod(self.img_shape)), 512),
+                                   nn.LeakyReLU(0.2, inplace=True),
+                                   nn.Linear(512, 512),
+                                   nn.Dropout(0.4),
+                                   nn.LeakyReLU(0.2, inplace=True),
+                                   nn.Linear(512, 512),
+                                   nn.Dropout(0.4),
+                                   nn.LeakyReLU(0.2, inplace=True),
+                                   nn.Linear(512, 1))
 
-        self.model = nn.Sequential(*discriminator_block(opt.channels, 16, bn=False),
-                                   *discriminator_block(16, 32),
-                                   *discriminator_block(32, 64),
-                                   *discriminator_block(64, 128))
-        self.adv_layer = nn.Sequential(nn.Linear(128 * self.ds_size ** 2, 1),
-                                       nn.Sigmoid())
-
-    def forward(self, img):
-        out = self.model(img)
-        out = out.view(out.shape[0], -1)
-        validity = self.adv_layer(out)
+    def forward(self, img, labels):
+        d_in = torch.cat((img.view(img.size(0), -1), self.label_embedding(labels)), -1)
+        validity = self.model(d_in)
         return validity
 

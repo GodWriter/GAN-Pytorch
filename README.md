@@ -7,7 +7,7 @@ Pytorch implementations of Generative Adversarial Network algorithms.
 * WGAN-GP
 * DCGAN
 * CGAN
-* Context-GAN
+* Context Encoder
 * Pix2Pix
 * CycleGAN
 * StarGAN
@@ -102,4 +102,23 @@ $ python infer.py
 &emsp;
 
 #### CGAN
-To be continued~~~
+Compared with GAN, CGAN embeds label into the images in two places
+* the input of generator, so the input form is [z, label]
+* the input of discriminator, so the input form is [imgs, label]
+* BCELoss is replaced with MSELoss
+* There is an confusing problem that during the infer phase
+  * Good results can be obtain under the condition range from 0 to 9 while [1, 1, ..., 1] will get bad results.
+  * Random digit condition can also obtain good results
+  * It's considered that the input digit category of generator are always random digit categories, which makes the generator behave worse in the same digit category.
+
+|             Epoch(1-100)             |             Epoch(101-200)             |
+| :------------------------------: | :------------------------------: |
+| ![mnist1](cgan/images/mnist1.gif) | ![mnist2](cgan/images/mnist2.gif) |
+
+##### Run Example
+
+```bash
+$ cd cgan
+$ python train.py
+$ python infer.py
+```

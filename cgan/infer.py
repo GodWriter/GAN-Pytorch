@@ -9,9 +9,10 @@ from config import parse_args
 from model import Generator
 
 
-def infer():
+def infer(n_row):
     cuda = True if torch.cuda.is_available() else False
-    Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+    FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
+    LongTensor = torch.cuda.LongTensor if cuda else torch.LongTensor
 
     opt = parse_args()
     generator = Generator(opt)
@@ -20,11 +21,13 @@ def infer():
     if cuda:
         generator.cuda()
 
-    z = Variable(Tensor(np.random.normal(0, 1, (opt.batch_size, opt.latent_dim))))
-    gen_imgs = generator(z)
+    z = Variable(FloatTensor(np.random.normal(0, 1, (n_row ** 2, opt.latent_dim))))
+    labels = np.array([num for _ in range(n_row) for num in range(n_row)])
+    labels = Variable(LongTensor(labels))
 
-    save_image(gen_imgs.data[:25], "images/infer.png", nrow=5, normalize=True)
+    gen_imgs = generator(z, labels)
+    save_image(gen_imgs.data,  "images/infer.png", nrow=n_row, normalize=True)
 
 
 if __name__ == '__main__':
-    infer()
+    infer(10)
