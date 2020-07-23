@@ -58,7 +58,6 @@ def celeba_loader(opt, mode):
     transform = transforms.Compose([transforms.Resize((opt.img_size, opt.img_size), Image.BICUBIC),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-
     celeba_loader = ImageDataset(data_path,
                                  transforms_=transform,
                                  mode=mode)
