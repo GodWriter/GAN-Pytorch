@@ -9,7 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 
 class ImageDataset(Dataset):
     def __init__(self, root, transforms_=None, img_size=128, mask_size=64, mode='train'):
-        self.transform = transforms.Compose(transforms_)
+        self.transform = transforms_
         self.img_size = img_size
         self.mask_size = mask_size
         self.mode = mode
