@@ -2,3 +2,4 @@
 gan/data
 wgan/data
 wgan-gp/data
+context-encoder/data
