@@ -6,7 +6,8 @@ from torchvision.utils import save_image
 import torchvision.transforms as transforms
 
 from config import parse_args
-from model import Generator
+from model import Generator, Discriminator
+from torchsummary import summary
 
 
 def apply_center_mask(opt, img):
@@ -27,6 +28,21 @@ def load_img(opt):
     img = transform(img)
 
     return img, apply_center_mask(opt, img)
+
+
+def display_network(opt):
+    cuda = True if torch.cuda.is_available() else False
+
+    generator = Generator(opt.channels)
+    # generator.load_state_dict(torch.load(opt.load_model))
+    discriminator = Discriminator(opt.channels)
+
+    if cuda:
+        generator.cuda()
+        discriminator.cuda()
+
+    # summary(generator, (opt.channels, opt.img_size, opt.img_size))
+    summary(discriminator, (opt.channels, opt.mask_size, opt.mask_size))
 
 
 def infer(opt):
@@ -53,4 +69,5 @@ def infer(opt):
 
 if __name__ == '__main__':
     opt = parse_args()
-    infer(opt)
+    # infer(opt)
+    display_network(opt)

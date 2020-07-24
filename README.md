@@ -126,4 +126,8 @@ $ python infer.py
 ```
 
 #### Context-Encoder
-To be continued~~~
+Context-Encoder aims at taking an image with missing part as input, and then predicting the missing part.
+* The total model is trained in the form of lsgan
+* For discriminator, PatchGAN is employed
+* For simplicity's sake, the input image size is 128 and the mask size is 64
+* In infer.py, display_network() can be used to print the network architecture

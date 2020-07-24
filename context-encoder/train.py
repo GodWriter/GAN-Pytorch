@@ -73,6 +73,7 @@ def train():
 
             optimizer_D.zero_grad()
 
+            # shape of masked_parts and valid [-1, 1, 8, 8]
             real_loss = adversarial_loss(discriminator(masked_parts), valid)
             fake_loss = adversarial_loss(discriminator(gen_parts.detach()), fake)
             d_loss = (real_loss + fake_loss) / 2
