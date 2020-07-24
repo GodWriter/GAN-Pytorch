@@ -7,12 +7,14 @@ Pytorch implementations of Generative Adversarial Network algorithms.
 * WGAN-GP
 * DCGAN
 * CGAN
-* Context Encoder
+* Context-Encoder
 * Pix2Pix
 * CycleGAN
 * StarGAN
 * Unit
 * MUnit
+* SRGAN
+* ESRGAN
 
 &emsp;
 
