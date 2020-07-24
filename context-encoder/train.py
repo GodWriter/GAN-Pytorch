@@ -1,6 +1,5 @@
 import os
 import torch
-import numpy as np
 
 from config import parse_args
 from utils import save_sample
