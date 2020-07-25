@@ -6,7 +6,7 @@ def parse_args():
     parsing and configuration
     :return: parse_args
     """
-    desc = "Pytorch implementation of GAN"
+    desc = "Pytorch implementation of DCGAN"
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('--epochs', type=int, default=200, help="training epochs")

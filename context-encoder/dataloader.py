@@ -58,17 +58,17 @@ def celeba_loader(opt, mode):
     transform = transforms.Compose([transforms.Resize((opt.img_size, opt.img_size), Image.BICUBIC),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-    celeba_loader = ImageDataset(data_path,
-                                 transforms_=transform,
-                                 mode=mode)
+    loader = ImageDataset(data_path,
+                          transforms_=transform,
+                          mode=mode)
 
     # create the data_loader
     if mode == 'train':
-        data_loader = DataLoader(celeba_loader,
+        data_loader = DataLoader(loader,
                                  batch_size=opt.batch_size,
                                  shuffle=True)
     elif mode == 'test':
-        data_loader = DataLoader(celeba_loader,
+        data_loader = DataLoader(loader,
                                  batch_size=12,
                                  shuffle=True)
 
