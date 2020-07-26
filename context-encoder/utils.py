@@ -1,15 +1,29 @@
 import os
-import torch
+import glob
 import imageio
+
+import torch
+import numpy as np
 
 from PIL import Image
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
 
+def stack_img(image_path):
+    imgs = []
+
+    files = sorted(glob.glob("%s/*.*" % image_path))
+    for file in files:
+        imgs.append(np.array(Image.open(file)))
+
+    result_img = np.vstack(tuple(imgs))
+    Image.fromarray(result_img).save(os.path.join(image_path, 'result.png'))
+
+
 def create_gif(image_path):
     frames = []
-    gif_name = os.path.join("images", 'mnist1.gif')
+    gif_name = os.path.join("images", 'display1.gif')
 
     image_list = os.listdir(image_path)
     sorted(image_list)
@@ -44,6 +58,9 @@ def save_sample(opt, test_loader, batches_done, generator, FloatTensor):
 
 
 if __name__ == "__main__":
-    image_path = "images/example1"
-    resize_img(image_path)
-    create_gif(image_path)
+    # image_path = "images/example2"
+    # resize_img(image_path)
+    # create_gif(image_path)
+
+    # stack_img("images/DragonBall")
+    resize_img("images/DragonBall/results")

@@ -69,5 +69,5 @@ def infer(opt):
 
 if __name__ == '__main__':
     opt = parse_args()
-    # infer(opt)
-    display_network(opt)
+    infer(opt)
+    # display_network(opt)

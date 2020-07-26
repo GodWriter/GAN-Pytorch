@@ -133,3 +133,20 @@ Context-Encoder aims at taking an image with missing part as input, and then pre
 * For discriminator, PatchGAN is employed
 * For simplicity's sake, the input image size is 128 and the mask size is 64
 * In infer.py, display_network() can be used to print the network architecture
+
+|             Epoch(1-100)             |             Epoch(101-200)             |             Dragon Ball             |
+| :------------------------------: | :------------------------------: | :------------------------------: |
+| ![display1](context-encoder/images/display1.gif)| ![display2](context-encoder/images/display2.gif) | ![display3](context-encoder/images/display3.png) |
+
+##### Run Example
+
+```bash
+$ cd context-encoder
+$ python train.py
+$ python infer.py
+```
+
+&emsp;
+
+#### Pix2Pix
+To be continued~~~
