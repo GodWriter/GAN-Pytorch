@@ -56,9 +56,9 @@ def facades_loader(opt, mode):
         data_loader = DataLoader(loader,
                                  batch_size=opt.batch_size,
                                  shuffle=True)
-    elif mode == 'test':
+    elif mode == 'val':
         data_loader = DataLoader(loader,
-                                 batch_size=12,
+                                 batch_size=10,
                                  shuffle=True)
 
     return data_loader
