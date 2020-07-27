@@ -159,11 +159,6 @@ Pix2Pix aims at converting an input image into a corresponding output image, suc
 | :------------------------------: | :------------------------------: |
 | ![display](pix2pix/images/display1.gif)| ![Infer](pix2pix/images/infer1.png) |
 
-
-|             Training             |             Inferring             | 
-| :------------------------------: | :------------------------------: |
-| ![display](pix2pix/images/display2.gif)| ![Infer](pix2pix/images/infer2.png) |
-
 ```bash
 $ cd pix2pix
 $ python train.py
