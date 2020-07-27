@@ -22,7 +22,7 @@ def parse_args():
     parser.add_argument('--channels', type=int, default=3, help='number of image channels')
     parser.add_argument('--lambda_cyc', type=float, default=10.0, help='cycle loss weight')
     parser.add_argument('--lambda_id', type=float, default=5.0, help='identity loss weight')
-    parser.add_argument('--n_residual_blocks', type=int, default=9, help='number of residual blocks in generator')
+    parser.add_argument('--num_residual_blocks', type=int, default=9, help='number of residual blocks in generator')
     parser.add_argument('--n_critic', type=int, default=5, help='number of training steps for discriminator per iter')
     parser.add_argument('--sample_interval', type=int, default=100, help='interval between image samples')
     parser.add_argument('--checkpoint_interval', type=int, default=1000, help='interval between saving models')
