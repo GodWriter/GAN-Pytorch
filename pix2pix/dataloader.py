@@ -20,7 +20,7 @@ class ImageDataset(Dataset):
         self.length = len(self.files)
 
     def __getitem__(self, index):
-        img = Image.open(self.files[index % self.length])
+        img = Image.open(self.files[index % self.length]).convert("RGB")
         w, h = img.size
 
         img_A = img.crop((0, 0, w // 2, h))

@@ -36,7 +36,7 @@ class ImageDataset(Dataset):
         return masked_img, top_left
 
     def __getitem__(self, index):
-        img = Image.open(self.files[index % self.length])
+        img = Image.open(self.files[index % self.length]).convert("RGB")
         img = self.transform(img)
 
         # Random mask for training data and center mask for test data
