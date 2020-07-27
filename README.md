@@ -149,4 +149,23 @@ $ python infer.py
 &emsp;
 
 #### Pix2Pix
-To be continued~~~
+Pix2Pix aims at converting an input image into a corresponding output image, such as the conversion between grayscale image, gradient image and color image.
+* The total model is trained in the form of lsgan
+* For discriminator, PatchGAN is emloyed
+* Generator is designed in the form of UNet
+* In infer.py, display_network() can be used to print the network architecture
+
+|             Training             |             Inferring             | 
+| :------------------------------: | :------------------------------: |
+| ![display](pix2pix/images/display.gif)| ![Infer](pix2pix/images/infer.png) |
+
+```bash
+$ cd pix2pix
+$ python train.py
+$ python infer.py
+```
+
+&emsp;
+
+#### CycleGAN
+To be continued~

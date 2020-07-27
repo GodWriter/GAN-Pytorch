@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 
 def create_gif(image_path):
     frames = []
-    gif_name = os.path.join("images", 'mnist1.gif')
+    gif_name = os.path.join("images", 'display.gif')
 
     image_list = os.listdir(image_path)
     sorted(image_list)
@@ -25,7 +25,7 @@ def resize_img(path):
     for name in names:
         img_path = os.path.join(path, name)
         img = Image.open(img_path)
-        img = img.resize((172, 172))
+        img = img.resize((344, 177))
         img.save(img_path)
 
 
@@ -42,6 +42,8 @@ def save_sample(val_loader, batches_done, generator, FloatTensor):
 
 
 if __name__ == "__main__":
-    image_path = "images/example1"
+    image_path = "images/example"
     resize_img(image_path)
     create_gif(image_path)
+
+    # resize_img("images/1")
