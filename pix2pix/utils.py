@@ -29,18 +29,16 @@ def resize_img(path):
         img.save(img_path)
 
 
-def save_sample(opt, test_loader, batches_done, generator, FloatTensor):
-    samples, masked_samples, i = next(iter(test_loader))
-    samples = Variable(samples.type(FloatTensor))
-    masked_samples = Variable(masked_samples.type(FloatTensor))
-    i = i[0].item()
+def save_sample(opt, val_loader, batches_done, generator, FloatTensor):
+    img_A, img_B = next(iter(val_loader))
 
-    gen_mask = generator(masked_samples)
-    filled_samples = masked_samples.clone()
-    filled_samples[:, :, i: i+opt.mask_size, i: i+opt.mask_size] = gen_mask
+    img_A = Variable(img_A.type(FloatTensor))
+    img_B = Variable(img_B.type(FloatTensor))
 
-    sample = torch.cat((masked_samples.data, filled_samples.data, samples.data), -2)
-    save_image(sample, "images/%d.png" % batches_done, nrow=6, normalize=True)
+    gen_imgs = generator(img_A)
+    samples = torch.cat((img_A.data, gen_imgs.data, img_B.data), -2)
+
+    save_image(samples, "images/%d.png" % batches_done, nrow=5, normalize=True)
 
 
 if __name__ == "__main__":

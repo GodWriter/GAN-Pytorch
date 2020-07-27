@@ -1,9 +1,12 @@
 import os
+import time
 import torch
+import datetime
 
 from torch.autograd import Variable
 
 from config import parse_args
+from utils import save_sample
 from model import Generator, Discriminator, weights_init_normal
 from dataloader import facades_loader
 
@@ -45,6 +48,7 @@ def train():
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
+    prev_time = time.time()
     for epoch in range(opt.epochs):
         for i, (img_A, img_B) in enumerate(train_loader):
 
@@ -93,12 +97,16 @@ def train():
             # Log Information
             # ------------------
 
-            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]" %
-                  (epoch, opt.epochs, i, len(data_loader), d_loss.item(), g_loss.item()))
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G adv: %f, pixel: %f] ETA: %s" %
+                  (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_adv.item(), g_pixel.item(), time_left))
 
-            batches_done = epoch * len(data_loader) + i
+            batches_done = epoch * len(train_loader) + i
+            batches_left = opt.epochs * len(train_loader) - batches_done
+            time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time))
+            prev_time = time.time()
+
             if batches_done % opt.sample_interval == 0:
-                sample_image(opt, 10, batches_done, generator, FloatTensor, LongTensor)
+                save_sample(opt, val_loader, batches_done, generator, FloatTensor)
 
             if batches_done % opt.checkpoint_interval == 0:
                 torch.save(generator.state_dict(), "checkpoints/generator_%d.pth" % epoch)
