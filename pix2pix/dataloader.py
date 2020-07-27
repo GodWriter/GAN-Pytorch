@@ -11,7 +11,6 @@ from torch.utils.data import Dataset, DataLoader
 class ImageDataset(Dataset):
     def __init__(self, root, transforms_=None, mode='train'):
         self.transform = transforms_
-        self.mode = mode
 
         self.files = sorted(glob.glob(os.path.join(root, mode) + '/*.*'))
         if mode == 'train':

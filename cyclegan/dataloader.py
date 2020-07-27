@@ -8,46 +8,51 @@ from torch.utils.data import Dataset, DataLoader
 
 
 class ImageDataset(Dataset):
-    def __init__(self, root, transforms_=None, mode='train'):
+    def __init__(self, root, transforms_=None, unaligned=False, mode='train'):
         self.transform = transforms_
-        self.mode = mode
+        self.unaligned = unaligned
 
-        self.files = sorted(glob.glob(os.path.join(root, mode) + '/*.*'))
-        if mode == 'train':
-            self.files.extend(sorted(glob.glob(os.path.join(root, 'test') + '/*.*')))
+        self.files_A = sorted(glob.glob(os.path.join(root, "%s/A" % mode) + "/*.*"))
+        self.files_B = sorted(glob.glob(os.path.join(root, "%s/B" % mode) + "/*.*"))
 
-        self.length = len(self.files)
+        self.len_A = len(self.files_A)
+        self.len_B = len(self.files_B)
 
     def __getitem__(self, index):
-        img = Image.open(self.files[index % self.length])
-        w, h = img.size
+        img_A = Image.open(self.files_A[index % self.len_A])
 
-        img_A = img.crop((0, 0, w // 2, h))
-        img_B = img.crop((w // 2, 0, w, h))
+        if self.unaligned:
+            img_B = Image.open(self.files_B[random.randint(0, self.len_B-1)])
+        else:
+            img_B = Image.open(self.files_B[index % self.len_B])
 
-        # flip left to right randomly
-        if np.random.random() < 0.5:
-            img_A = Image.fromarray(np.array(img_A)[:, ::-1, :], "RGB")
-            img_B = Image.fromarray(np.array(img_B)[:, ::-1, :], "RGB")
+        # Convert images to rgb
+        if img_A.mode != "RGB":
+            img_A = img_A.convert("RGB")
+        if img_B.mode != "RGB":
+            img_B = img_B.convert("RGB")
 
         img_A = self.transform(img_A)
         img_B = self.transform(img_B)
 
-        return img_B, img_A
+        return img_A, img_B
 
     def __len__(self):
-        return self.length
+        return max(self.len_A, self.len_B)
 
 
-def facades_loader(opt, mode):
+def monet2photo_loader(opt, mode):
     data_path = 'data/%s' % opt.dataset
 
     # pre-process the data
-    transform = transforms.Compose([transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
+    transform = transforms.Compose([transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
+                                    transforms.RandomCrop((opt.img_height, opt.img_width)),
+                                    transforms.RandomHorizontalFlip(),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     loader = ImageDataset(data_path,
                           transforms_=transform,
+                          unaligned=True,
                           mode=mode)
 
     # create the data_loader
@@ -55,9 +60,9 @@ def facades_loader(opt, mode):
         data_loader = DataLoader(loader,
                                  batch_size=opt.batch_size,
                                  shuffle=True)
-    elif mode == 'val':
+    elif mode == 'test':
         data_loader = DataLoader(loader,
-                                 batch_size=10,
+                                 batch_size=5,
                                  shuffle=True)
 
     return data_loader
