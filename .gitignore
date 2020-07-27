@@ -3,3 +3,4 @@ gan/data
 wgan/data
 wgan-gp/data
 context-encoder/data
+pix2pix/data
