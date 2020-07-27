@@ -4,3 +4,4 @@ wgan/data
 wgan-gp/data
 context-encoder/data
 pix2pix/data
+cyclegan/data
