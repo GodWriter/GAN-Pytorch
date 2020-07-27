@@ -10,7 +10,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('--epochs', type=int, default=200, help="training epochs")
-    parser.add_argument('--batch_size', type=int, default=128, help='batch size')
+    parser.add_argument('--batch_size', type=int, default=32, help='batch size')
     parser.add_argument('--dataset', type=str, default='facades', help='name of the dataset')
     parser.add_argument('--lr', type=float, default=0.0002, help='adam: learning rate')
     parser.add_argument('--b1', type=float, default=0.5, help='adam: decay of first order momentum of gradient')

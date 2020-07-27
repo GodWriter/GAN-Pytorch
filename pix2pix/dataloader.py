@@ -34,7 +34,7 @@ class ImageDataset(Dataset):
         img_A = self.transform(img_A)
         img_B = self.transform(img_B)
 
-        return img_A, img_B
+        return img_B, img_A
 
     def __len__(self):
         return self.length
@@ -44,7 +44,7 @@ def facades_loader(opt, mode):
     data_path = 'data/%s' % opt.dataset
 
     # pre-process the data
-    transform = transforms.Compose([transforms.Resize((opt.img_size, opt.img_size), Image.BICUBIC),
+    transform = transforms.Compose([transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     loader = ImageDataset(data_path,
