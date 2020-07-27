@@ -29,7 +29,7 @@ def resize_img(path):
         img.save(img_path)
 
 
-def save_sample(opt, val_loader, batches_done, generator, FloatTensor):
+def save_sample(val_loader, batches_done, generator, FloatTensor):
     img_A, img_B = next(iter(val_loader))
 
     img_A = Variable(img_A.type(FloatTensor))

@@ -106,7 +106,7 @@ def train():
                   (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_adv.item(), g_pixel.item(), time_left))
 
             if batches_done % opt.sample_interval == 0:
-                save_sample(opt, val_loader, batches_done, generator, FloatTensor)
+                save_sample(val_loader, batches_done, generator, FloatTensor)
 
             if batches_done % opt.checkpoint_interval == 0:
                 torch.save(generator.state_dict(), "checkpoints/generator_%d.pth" % epoch)
