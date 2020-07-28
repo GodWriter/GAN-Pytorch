@@ -8,7 +8,7 @@ from torch.autograd import Variable
 from config import parse_args
 from utils import save_sample
 from model import Generator, Discriminator, weights_init_normal
-from dataloader import facades_loader
+from dataloader import monet2photo_loader
 
 
 def train():
@@ -19,30 +19,35 @@ def train():
     cuda = True if torch.cuda.is_available() else False
     FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
-    # Calculate output of image discriminator (PatchGAN)
-    patch_h, patch_w = int(opt.img_height / 2 ** 4), int(opt.img_width / 2 ** 4)
-    patch = (1, patch_h, patch_w)
-
     # get dataloader
-    train_loader = facades_loader(opt, mode='train')
-    val_loader = facades_loader(opt, mode='val')
+    train_loader = monet2photo_loader(opt, mode='train')
+    val_loader = monet2photo_loader(opt, mode='test')
 
     # Initialize generator and discriminator
-    generator = Generator()
-    discriminator = Discriminator()
+    G_AB = Generator(opt)
+    G_BA = Generator(opt)
+    D_A = Discriminator(opt)
+    D_B = Discriminator(opt)
 
-    generator.apply(weights_init_normal)
-    discriminator.apply(weights_init_normal)
+    # Initialize weights
+    G_AB.apply(weights_init_normal)
+    G_BA.apply(weights_init_normal)
+    D_A.apply(weights_init_normal)
+    D_B.apply(weights_init_normal)
 
     # Loss function
     adversarial_loss = torch.nn.MSELoss()
-    pixelwise_loss = torch.nn.L1Loss()
+    cycle_loss = torch.nn.L1Loss()
+    identity_loss = torch.nn.L1Loss()
 
     if cuda:
-        generator.cuda()
-        discriminator.cuda()
+        G_AB.cuda()
+        G_BA.cuda()
+        D_A.cuda()
+        D_B.cuda()
         adversarial_loss.cuda()
-        pixelwise_loss.cuda()
+        cycle_loss.cuda()
+        identity_loss.cuda()
 
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
