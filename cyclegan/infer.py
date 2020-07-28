@@ -10,15 +10,6 @@ from model import Generator, Discriminator
 from torchsummary import summary
 
 
-def apply_center_mask(opt, img):
-    top_left = (opt.img_size - opt.mask_size) // 2
-
-    masked_img = img.clone()
-    masked_img[:, top_left: top_left + opt.mask_size, top_left: top_left + opt.mask_size] = 1
-
-    return masked_img, top_left
-
-
 def load_img(opt):
     # pre-process the test image
     transform = transforms.Compose([transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
@@ -46,22 +37,26 @@ def display_network(opt):
     summary(discriminator, (opt.channels, opt.img_height, opt.img_width))
 
 
-
 def infer(opt):
     cuda = True if torch.cuda.is_available() else False
     FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
-    generator = Generator()
-    generator.load_state_dict(torch.load(opt.load_model))
+    G_AB = Generator(opt)
+    G_BA = Generator(opt)
+
+    G_AB.load_state_dict(torch.load(opt.load_model.split(',')[0]))
+    G_BA.load_state_dict(torch.load(opt.load_model.split(',')[1]))
 
     if cuda:
-        generator.cuda()
+        G_AB.cuda()
+        G_BA.cuda()
 
     sample = load_img(opt)
     sample = Variable(sample.unsqueeze(0).type(FloatTensor))
-    gen_img = generator(sample)
+    gen_img_B = G_AB(sample)
+    gen_img_A = G_BA(sample)
 
-    sample = torch.cat((sample.data, gen_img.data), -1)
+    sample = torch.cat((sample.data, gen_img_B.data, gen_img_A.data), -1)
     save_image(sample, "images/infer.png", nrow=1, normalize=True)
 
 

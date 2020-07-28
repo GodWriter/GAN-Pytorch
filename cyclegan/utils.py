@@ -1,7 +1,9 @@
 import os
+import glob
 import torch
 import random
 import imageio
+import numpy as np
 
 from PIL import Image
 from torch.autograd import Variable
@@ -44,6 +46,17 @@ class LambdaLR:
 
     def step(self, epoch):
         return 1.0 - max(0, epoch + self.offset - self.decay_start_epoch) / (self.n_epochs - self.decay_start_epoch)
+
+
+def stack_img(image_path):
+    imgs = []
+
+    files = sorted(glob.glob("%s/*.*" % image_path))
+    for file in files:
+        imgs.append(np.array(Image.open(file)))
+
+    result_img = np.vstack(tuple(imgs))
+    Image.fromarray(result_img).save(os.path.join(image_path, 'result.png'))
 
 
 def create_gif(image_path):

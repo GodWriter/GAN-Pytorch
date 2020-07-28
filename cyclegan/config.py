@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument('--n_critic', type=int, default=5, help='number of training steps for discriminator per iter')
     parser.add_argument('--sample_interval', type=int, default=500, help='interval between image samples')
     parser.add_argument('--checkpoint_interval', type=int, default=5000, help='interval between saving models')
-    parser.add_argument('--load_model', type=str, default='checkpoints/generator_done.pth', help='model to load')
+    parser.add_argument('--load_model', type=str, default='checkpoints/G_AB_done.pth,checkpoints/G_BA_done.pth', help='model to load')
     parser.add_argument('--test_img', type=str, default='images/test.jpg', help='image to test')
 
     opt = parser.parse_args()
