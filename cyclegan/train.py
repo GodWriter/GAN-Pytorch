@@ -140,7 +140,7 @@ def train():
                 cyc_loss_B = cycle_loss(img_B, recov_B)
                 cyc_loss = (cyc_loss_A + cyc_loss_B) / 2
 
-                # Total loss
+                # generator loss
                 g_loss = g_adv + opt.lambda_cyc * cyc_loss + opt.lambda_id * id_loss
                 g_loss.backward()
                 optimizer_G.step()
