@@ -145,17 +145,22 @@ def train():
                 g_loss.backward()
                 optimizer_G.step()
 
-            # ------------------
-            # Log Information
-            # ------------------
+                # ----------------
+                # Log Information
+                # ----------------
 
+                batches_done = epoch * len(train_loader) + i
+                batches_left = opt.epochs * len(train_loader) - batches_done
+                time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time) // opt.n_critic)
+                prev_time = time.time()
+
+                print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, cycle: %f, identity: %f] ETA: %s" %
+                      (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_loss.item(), g_adv.item(), cyc_loss.item(), id_loss.item(), time_left))
+
+            # ------------------
+            # Val and checkpoint
+            # ------------------
             batches_done = epoch * len(train_loader) + i
-            batches_left = opt.epochs * len(train_loader) - batches_done
-            time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time))
-            prev_time = time.time()
-
-            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, cycle: %f, identity: %f] ETA: %s" %
-                  (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_loss.item(), g_adv.item(), cyc_loss.item(), id_loss.item(), time_left))
 
             if batches_done % opt.sample_interval == 0:
                 save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor)

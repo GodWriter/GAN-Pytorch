@@ -84,7 +84,7 @@ def save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor):
     gen_A = make_grid(gen_A, nrow=5, normalize=True)
     gen_B = make_grid(gen_B, nrow=5, normalize=True)
 
-    samples = torch.cat((img_A, gen_B, img_B, gen_A), 1)
+    samples = torch.cat((img_A.data, gen_B.data, img_B.data, gen_A.data), 1)
     save_image(samples, "images/%d.png" % batches_done, normalize=True)
 
 

@@ -64,6 +64,22 @@ def train():
             gen_imgs = generator(img_A)
 
             # ------------------
+            # Train Generator
+            # ------------------
+
+            optimizer_G.zero_grad()
+
+            # Loss for generator
+            g_adv = adversarial_loss(discriminator(gen_imgs, img_A), valid)
+            g_pixel = pixelwise_loss(gen_imgs, img_B)
+
+            g_loss = g_adv + opt.lambda_pixel * g_pixel
+
+            # Update parameters
+            g_loss.backward()
+            optimizer_G.step()
+
+            # ------------------
             # Train Discriminator
             # ------------------
 
@@ -75,23 +91,6 @@ def train():
 
             d_loss.backward()
             optimizer_D.step()
-
-            # ------------------
-            # Train Generator
-            # ------------------
-
-            if i % opt.n_critic == 0:
-                optimizer_G.zero_grad()
-
-                # Loss for generator
-                g_adv = adversarial_loss(discriminator(gen_imgs, img_A), valid)
-                g_pixel = pixelwise_loss(gen_imgs, img_B)
-
-                g_loss = g_adv + opt.lambda_pixel * g_pixel
-
-                # Update parameters
-                g_loss.backward()
-                optimizer_G.step()
 
             # ------------------
             # Log Information

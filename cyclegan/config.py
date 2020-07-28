@@ -9,13 +9,13 @@ def parse_args():
     desc = "Pytorch implementation of Pix2Pix"
     parser = argparse.ArgumentParser(description=desc)
 
-    parser.add_argument('--epochs', type=int, default=30, help="training epochs")
+    parser.add_argument('--epochs', type=int, default=10, help="training epochs")
     parser.add_argument('--batch_size', type=int, default=2, help='batch size')
     parser.add_argument('--dataset', type=str, default='monet2photo', help='name of the dataset')
     parser.add_argument('--lr', type=float, default=0.0002, help='adam: learning rate')
     parser.add_argument('--b1', type=float, default=0.5, help='adam: decay of first order momentum of gradient')
     parser.add_argument('--b2', type=float, default=0.999, help='adam: decay of first order momentum of gradient')
-    parser.add_argument('--decay_epoch', type=int, default=20, help='epoch from which to start lr decay')
+    parser.add_argument('--decay_epoch', type=int, default=8, help='epoch from which to start lr decay')
     parser.add_argument('--n_cpu', type=int, default=1, help='number of cpu threads during batch generation')
     parser.add_argument('--img_height', type=int, default=256, help='size of image height')
     parser.add_argument('--img_width', type=int, default=256, help='size of image width')
@@ -25,7 +25,7 @@ def parse_args():
     parser.add_argument('--num_residual_blocks', type=int, default=9, help='number of residual blocks in generator')
     parser.add_argument('--n_critic', type=int, default=5, help='number of training steps for discriminator per iter')
     parser.add_argument('--sample_interval', type=int, default=500, help='interval between image samples')
-    parser.add_argument('--checkpoint_interval', type=int, default=6000, help='interval between saving models')
+    parser.add_argument('--checkpoint_interval', type=int, default=5000, help='interval between saving models')
     parser.add_argument('--load_model', type=str, default='checkpoints/generator_done.pth', help='model to load')
     parser.add_argument('--test_img', type=str, default='images/test.jpg', help='image to test')
 
