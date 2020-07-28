@@ -5,7 +5,7 @@ import imageio
 
 from PIL import Image
 from torch.autograd import Variable
-from torchvision.utils import save_image
+from torchvision.utils import save_image, make_grid
 
 
 class ReplayBuffer:
@@ -70,14 +70,22 @@ def resize_img(path):
 
 def save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor):
     img_A, img_B = next(iter(test_loader))
+    G_AB.eval()
+    G_BA.eval()
 
     img_A = Variable(img_A.type(FloatTensor))
     img_B = Variable(img_B.type(FloatTensor))
+    gen_A = G_BA(img_B)
+    gen_B = G_AB(img_A)
 
-    gen_imgs = generator(img_A)
-    samples = torch.cat((img_A.data, gen_imgs.data, img_B.data), -2)
+    # Arange images along x-axis
+    img_A = make_grid(img_A, nrow=5, normalize=True)
+    img_B = make_grid(img_B, nrow=5, normalize=True)
+    gen_A = make_grid(gen_A, nrow=5, normalize=True)
+    gen_B = make_grid(gen_B, nrow=5, normalize=True)
 
-    save_image(samples, "images/%d.png" % batches_done, nrow=5, normalize=True)
+    samples = torch.cat((img_A, gen_B, img_B, gen_A), 1)
+    save_image(samples, "images/%d.png" % batches_done, normalize=True)
 
 
 if __name__ == "__main__":

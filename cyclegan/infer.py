@@ -41,9 +41,9 @@ def display_network(opt):
         generator.cuda()
         discriminator.cuda()
 
-    print(*discriminator.output_shape)
-    # summary(generator, (opt.channels, opt.img_height, opt.img_width))
-    # summary(discriminator, [(opt.channels, opt.img_height, opt.img_width), (opt.channels, opt.img_height, opt.img_width)])
+    # print(*discriminator.output_shape)
+    summary(generator, (opt.channels, opt.img_height, opt.img_width))
+    summary(discriminator, (opt.channels, opt.img_height, opt.img_width))
 
 
 
