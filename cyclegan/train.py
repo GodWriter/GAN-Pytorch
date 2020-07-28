@@ -22,7 +22,7 @@ def train():
 
     # get dataloader
     train_loader = monet2photo_loader(opt, mode='train')
-    val_loader = monet2photo_loader(opt, mode='test')
+    test_loader = monet2photo_loader(opt, mode='test')
 
     # Initialize generator and discriminator
     G_AB = Generator(opt)
@@ -61,8 +61,8 @@ def train():
     lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(optimizer_D_B, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
 
     # Buffers of previously generated samples
-    fake_A_buffer = ReplayBuffer()
-    fake_B_buffer = ReplayBuffer()
+    gen_A_buffer = ReplayBuffer()
+    gen_B_buffer = ReplayBuffer()
 
     prev_time = time.time()
     for epoch in range(opt.epochs):
@@ -73,39 +73,75 @@ def train():
             img_B = Variable(img_B.type(FloatTensor))
 
             # Adversarial ground truths
-            valid = Variable(FloatTensor(img_A.shape[0], *patch).fill_(1.0), requires_grad=False)
-            fake = Variable(FloatTensor(img_A.shape[0], *patch).fill_(0.0), requires_grad=False)
+            valid = Variable(FloatTensor(img_A.shape[0], *D_A.output_shape).fill_(1.0), requires_grad=False)
+            fake = Variable(FloatTensor(img_A.shape[0], *D_A.output_shape).fill_(0.0), requires_grad=False)
 
             # Configure input
-            gen_imgs = generator(img_A)
+            gen_A = G_BA(img_B)
+            gen_B = G_AB(img_A)
 
-            # ------------------
-            # Train Discriminator
-            # ------------------
+            recov_A = G_BA(gen_B)
+            recov_B = G_AB(gen_A)
 
-            optimizer_D.zero_grad()
+            gen_A_ = gen_A_buffer.push_and_pop(gen_A)
+            gen_B_ = gen_B_buffer.push_and_pop(gen_B)
 
-            real_loss = adversarial_loss(discriminator(img_B, img_A), valid)
-            fake_loss = adversarial_loss(discriminator(gen_imgs.detach(), img_A), fake)
-            d_loss = (real_loss + fake_loss) / 2
+            # ----------------------
+            # Train Discriminator A
+            # ----------------------
 
-            d_loss.backward()
-            optimizer_D.step()
+            optimizer_D_A.zero_grad()
+
+            real_loss = adversarial_loss(D_A(img_A), valid)
+            fake_loss = adversarial_loss(D_A(gen_A_.detach()), fake)
+            d_loss_A = (real_loss + fake_loss) / 2
+
+            d_loss_A.backward()
+            optimizer_D_A.step()
+
+            # ----------------------
+            # Train Discriminator B
+            # ----------------------
+
+            optimizer_D_B.zero_grad()
+
+            real_loss = adversarial_loss(D_B(img_B), valid)
+            fake_loss = adversarial_loss(D_B(gen_B_.detach()), fake)
+            d_loss_B = (real_loss + fake_loss) / 2
+
+            d_loss_B.backward()
+            optimizer_D_B.step()
+
+            d_loss = (d_loss_A + d_loss_B) / 2
 
             # ------------------
             # Train Generator
             # ------------------
 
             if i % opt.n_critic == 0:
+
+                G_AB.train()
+                G_BA.train()
+
                 optimizer_G.zero_grad()
 
-                # Loss for generator
-                g_adv = adversarial_loss(discriminator(gen_imgs, img_A), valid)
-                g_pixel = pixelwise_loss(gen_imgs, img_B)
+                # Identity loss
+                id_loss_A = identity_loss(G_BA(img_A), img_A)
+                id_loss_B = identity_loss(G_AB(img_B), img_B)
+                id_loss = (id_loss_A + id_loss_B) / 2
 
-                g_loss = g_adv + opt.lambda_pixel * g_pixel
+                # Adversarial loss
+                g_adv_AB = adversarial_loss(D_B(gen_B), valid)
+                g_adv_BA = adversarial_loss(D_A(gen_A), valid)
+                g_adv = (g_adv_AB + g_adv_BA)/ 2
 
-                # Update parameters
+                # Cycle loss
+                cyc_loss_A = cycle_loss(img_A, recov_A)
+                cyc_loss_B = cycle_loss(img_B, recov_B)
+                cyc_loss = (cyc_loss_A + cyc_loss_B) / 2
+
+                # Total loss
+                g_loss = g_adv + opt.lambda_cyc * cyc_loss + opt.lambda_id * id_loss
                 g_loss.backward()
                 optimizer_G.step()
 
@@ -118,17 +154,24 @@ def train():
             time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time))
             prev_time = time.time()
 
-            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G adv: %f, pixel: %f] ETA: %s" %
-                  (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_adv.item(), g_pixel.item(), time_left))
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, cycle: %f, identity: %f] ETA: %s" %
+                  (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_loss.item(), g_adv.item(), cyc_loss.item(), id_loss.item(), time_left))
 
             if batches_done % opt.sample_interval == 0:
-                save_sample(val_loader, batches_done, generator, FloatTensor)
+                save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor)
 
             if batches_done % opt.checkpoint_interval == 0:
-                torch.save(generator.state_dict(), "checkpoints/generator_%d.pth" % epoch)
+                torch.save(G_AB.state_dict(), "checkpoints/G_AB_%d.pth" % epoch)
+                torch.save(G_BA.state_dict(), "checkpoints/G_BA_%d.pth" % epoch)
                 # torch.save(discriminator.state_dict(), "checkpoints/discriminator_%d.pth" % epoch)
 
-    torch.save(generator.state_dict(), "checkpoints/generator_done.pth")
+        # Update learning rates
+        lr_scheduler_G.step()
+        lr_scheduler_D_A.step()
+        lr_scheduler_D_B.step()
+
+    torch.save(G_AB.state_dict(), "checkpoints/G_AB_done.pth")
+    torch.save(G_BA.state_dict(), "checkpoints/G_BA_done.pth")
     print("Training Process has been Done!")
 
 

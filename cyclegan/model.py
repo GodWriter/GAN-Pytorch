@@ -13,7 +13,7 @@ def weights_init_normal(m):
 
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels):
-        super(ResidualBlock, self).__int__()
+        super(ResidualBlock, self).__init__()
 
         self.block = nn.Sequential(nn.ReflectionPad2d(1),
                                    nn.Conv2d(in_channels, in_channels, 3),
@@ -73,6 +73,9 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, opt):
         super(Discriminator, self).__init__()
+
+        # Calculate output shape of image discriminator (PatchGAN)
+        self.output_shape = (1, opt.img_height // 2 ** 4, opt.img_width // 2 ** 4)
 
         def discriminator_block(in_filters, out_filters, stride=2, normalize=True):
             layers = [nn.Conv2d(in_filters, out_filters, 4, stride, 1)]

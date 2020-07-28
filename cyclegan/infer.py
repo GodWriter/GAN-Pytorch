@@ -33,16 +33,18 @@ def load_img(opt):
 def display_network(opt):
     cuda = True if torch.cuda.is_available() else False
 
-    generator = Generator(opt.channels, opt.channels)
+    generator = Generator(opt)
     # generator.load_state_dict(torch.load(opt.load_model))
-    discriminator = Discriminator(opt.channels)
+    discriminator = Discriminator(opt)
 
     if cuda:
         generator.cuda()
         discriminator.cuda()
 
-    summary(generator, (opt.channels, opt.img_height, opt.img_width))
-    summary(discriminator, [(opt.channels, opt.img_height, opt.img_width), (opt.channels, opt.img_height, opt.img_width)])
+    print(*discriminator.output_shape)
+    # summary(generator, (opt.channels, opt.img_height, opt.img_width))
+    # summary(discriminator, [(opt.channels, opt.img_height, opt.img_width), (opt.channels, opt.img_height, opt.img_width)])
+
 
 
 def infer(opt):
@@ -65,5 +67,5 @@ def infer(opt):
 
 if __name__ == '__main__':
     opt = parse_args()
-    infer(opt)
-    # display_network(opt)
+    # infer(opt)
+    display_network(opt)
