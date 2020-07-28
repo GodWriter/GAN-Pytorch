@@ -1,12 +1,13 @@
 import os
 import time
 import torch
+import itertools
 import datetime
 
 from torch.autograd import Variable
 
 from config import parse_args
-from utils import save_sample
+from utils import ReplayBuffer, LambdaLR, save_sample
 from model import Generator, Discriminator, weights_init_normal
 from dataloader import monet2photo_loader
 
@@ -50,8 +51,18 @@ def train():
         identity_loss.cuda()
 
     # Optimizers
-    optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-    optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+    optimizer_G = torch.optim.Adam(itertools.chain(G_AB.parameters(), G_BA.parameters()), lr=opt.lr, betas=(opt.b1, opt.b2))
+    optimizer_D_A = torch.optim.Adam(D_A.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+    optimizer_D_B = torch.optim.Adam(D_B.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+
+    # Learning rate update schedulers
+    lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(optimizer_G, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
+    lr_scheduler_D_A = torch.optim.lr_scheduler.LambdaLR(optimizer_D_A, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
+    lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(optimizer_D_B, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
+
+    # Buffers of previously generated samples
+    fake_A_buffer = ReplayBuffer()
+    fake_B_buffer = ReplayBuffer()
 
     prev_time = time.time()
     for epoch in range(opt.epochs):
