@@ -86,6 +86,35 @@ def train():
             gen_A_ = gen_A_buffer.push_and_pop(gen_A)
             gen_B_ = gen_B_buffer.push_and_pop(gen_B)
 
+            # ------------------
+            # Train Generator
+            # ------------------
+
+            G_AB.train()
+            G_BA.train()
+
+            optimizer_G.zero_grad()
+
+            # Identity loss
+            id_loss_A = identity_loss(G_BA(img_A), img_A)
+            id_loss_B = identity_loss(G_AB(img_B), img_B)
+            id_loss = (id_loss_A + id_loss_B) / 2
+
+            # Adversarial loss
+            g_adv_AB = adversarial_loss(D_B(gen_B), valid)
+            g_adv_BA = adversarial_loss(D_A(gen_A), valid)
+            g_adv = (g_adv_AB + g_adv_BA)/ 2
+
+            # Cycle loss
+            cyc_loss_A = cycle_loss(img_A, recov_A)
+            cyc_loss_B = cycle_loss(img_B, recov_B)
+            cyc_loss = (cyc_loss_A + cyc_loss_B) / 2
+
+            # generator loss
+            g_loss = g_adv + opt.lambda_cyc * cyc_loss + opt.lambda_id * id_loss
+            g_loss.backward()
+            optimizer_G.step()
+
             # ----------------------
             # Train Discriminator A
             # ----------------------
@@ -115,52 +144,16 @@ def train():
             d_loss = (d_loss_A + d_loss_B) / 2
 
             # ------------------
-            # Train Generator
+            # Log Information
             # ------------------
 
-            if i % opt.n_critic == 0:
-
-                G_AB.train()
-                G_BA.train()
-
-                optimizer_G.zero_grad()
-
-                # Identity loss
-                id_loss_A = identity_loss(G_BA(img_A), img_A)
-                id_loss_B = identity_loss(G_AB(img_B), img_B)
-                id_loss = (id_loss_A + id_loss_B) / 2
-
-                # Adversarial loss
-                g_adv_AB = adversarial_loss(D_B(gen_B), valid)
-                g_adv_BA = adversarial_loss(D_A(gen_A), valid)
-                g_adv = (g_adv_AB + g_adv_BA)/ 2
-
-                # Cycle loss
-                cyc_loss_A = cycle_loss(img_A, recov_A)
-                cyc_loss_B = cycle_loss(img_B, recov_B)
-                cyc_loss = (cyc_loss_A + cyc_loss_B) / 2
-
-                # generator loss
-                g_loss = g_adv + opt.lambda_cyc * cyc_loss + opt.lambda_id * id_loss
-                g_loss.backward()
-                optimizer_G.step()
-
-                # ----------------
-                # Log Information
-                # ----------------
-
-                batches_done = epoch * len(train_loader) + i
-                batches_left = opt.epochs * len(train_loader) - batches_done
-                time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time) // opt.n_critic)
-                prev_time = time.time()
-
-                print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, cycle: %f, identity: %f] ETA: %s" %
-                      (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_loss.item(), g_adv.item(), cyc_loss.item(), id_loss.item(), time_left))
-
-            # ------------------
-            # Val and checkpoint
-            # ------------------
             batches_done = epoch * len(train_loader) + i
+            batches_left = opt.epochs * len(train_loader) - batches_done
+            time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time))
+            prev_time = time.time()
+
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, cycle: %f, identity: %f] ETA: %s" %
+                  (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_loss.item(), g_adv.item(), cyc_loss.item(), id_loss.item(), time_left))
 
             if batches_done % opt.sample_interval == 0:
                 save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor)
