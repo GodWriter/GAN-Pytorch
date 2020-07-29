@@ -77,7 +77,7 @@ def resize_img(path):
     for name in names:
         img_path = os.path.join(path, name)
         img = Image.open(img_path)
-        img = img.resize((172, 172))
+        img = img.resize((342, 342))
         img.save(img_path)
 
 
