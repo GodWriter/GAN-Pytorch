@@ -177,3 +177,14 @@ CycleGAN aims at converting an input image into a corresponding output image but
 |             Training             |             Inferring             | 
 | :------------------------------: | :------------------------------: |
 | ![display](cyclegan/images/display.gif)| ![Infer](cyclegan/images/result.png) |
+
+```bash
+$ cd cyclegan
+$ python train.py
+$ python infer.py
+```
+
+&emsp;
+
+#### StarGAN
+To be continued~
