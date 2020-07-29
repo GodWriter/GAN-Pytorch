@@ -77,7 +77,7 @@ def resize_img(path):
     for name in names:
         img_path = os.path.join(path, name)
         img = Image.open(img_path)
-        img = img.resize((342, 342))
+        img = img.resize((img.size[0] // 2, img.size[1] // 2))
         img.save(img_path)
 
 
@@ -102,9 +102,9 @@ def save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor):
 
 
 if __name__ == "__main__":
-    image_path = "images/example4"
-    resize_img(image_path)
-    create_gif(image_path)
+    # image_path = "images/example4"
+    # resize_img(image_path)
+    # create_gif(image_path)
 
-    # resize_img("images/test")
+    resize_img("images1/1")
     # stack_img("images/test")
