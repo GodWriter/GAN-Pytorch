@@ -12,7 +12,9 @@ from torchsummary import summary
 
 def load_img(opt):
     # pre-process the test image
-    transform = transforms.Compose([transforms.Resize((opt.img_height, opt.img_width), Image.BICUBIC),
+    transform = transforms.Compose([transforms.Resize(int(opt.img_height * 1.12), Image.BICUBIC),
+                                    transforms.RandomCrop((opt.img_height, opt.img_width)),
+                                    transforms.RandomHorizontalFlip(),
                                     transforms.ToTensor(),
                                     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
     img = Image.open(opt.test_img)
@@ -62,5 +64,5 @@ def infer(opt):
 
 if __name__ == '__main__':
     opt = parse_args()
-    # infer(opt)
-    display_network(opt)
+    infer(opt)
+    # display_network(opt)
