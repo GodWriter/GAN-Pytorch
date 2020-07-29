@@ -168,4 +168,12 @@ $ python infer.py
 &emsp;
 
 #### CycleGAN
-To be continued~
+CycleGAN aims at converting an input image into a corresponding output image but breaks the limitation of requirement for paired dataset.
+* CycleGAN has two generators and two discriminators, and they share the same model architecture respectively
+* The number of residual blocks in two generators can be controlled by opt.num_residual_blocks
+* The discriminator adopts the idea of PatchGAN
+* CycleGAN has three types of loss functions: adversarial loss, identity loss and cycle-consistence loss.
+
+|             Training             |             Inferring             | 
+| :------------------------------: | :------------------------------: |
+| ![display](cyclegan/images/display.gif)| ![Infer](cyclegan/images/result.png) |
