@@ -10,9 +10,9 @@ Pytorch implementations of Generative Adversarial Network algorithms.
 * Context-Encoder
 * Pix2Pix
 * CycleGAN
-* StarGAN
 * Unit
 * MUnit
+* StarGAN
 * SRGAN
 * ESRGAN
 
@@ -186,5 +186,5 @@ $ python infer.py
 
 &emsp;
 
-#### StarGAN
+#### Unit
 To be continued~
