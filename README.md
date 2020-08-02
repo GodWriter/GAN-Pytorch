@@ -187,4 +187,5 @@ $ python infer.py
 &emsp;
 
 #### Unit
-To be continued~
+Unit aims at....
+* when push into the latent space, the latent variable z are mixed with them
