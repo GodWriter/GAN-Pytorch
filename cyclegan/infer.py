@@ -56,7 +56,7 @@ def infer(opt):
     sample = load_img(opt)
     sample = Variable(sample.unsqueeze(0).type(FloatTensor))
     gen_img_B = G_AB(sample)
-    gen_img_A = G_BA(sample)
+    gen_img_A = G_BA(gen_img_B)
 
     sample = torch.cat((sample.data, gen_img_B.data, gen_img_A.data), -1)
     save_image(sample, "images/infer.png", nrow=1, normalize=True)
