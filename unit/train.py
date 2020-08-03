@@ -7,9 +7,9 @@ import datetime
 from torch.autograd import Variable
 
 from config import parse_args
-from utils import ReplayBuffer, LambdaLR, save_sample
-from model import Generator, Discriminator, weights_init_normal
-from dataloader import monet2photo_loader
+from utils import ReplayBuffer, save_sample
+from model import Generator, Discriminator, Encoder, ResidualBlock, LambdaLR, weights_init_normal
+from dataloader import commic2human_loader
 
 
 def train():
@@ -21,34 +21,46 @@ def train():
     FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
     # get dataloader
-    train_loader = monet2photo_loader(opt, mode='train')
-    test_loader = monet2photo_loader(opt, mode='test')
+    train_loader = commic2human_loader(opt, mode='train')
+    test_loader = commic2human_loader(opt, mode='test')
+
+    # Dimensionality
+    input_shape = (opt.channels, opt.img_height, opt.img_width)
+    shared_dim = opt.dim * (2 ** opt.n_downsample)
 
     # Initialize generator and discriminator
-    G_AB = Generator(opt)
-    G_BA = Generator(opt)
-    D_A = Discriminator(opt)
-    D_B = Discriminator(opt)
+    shared_E = ResidualBlock(in_channels=shared_dim)
+    E1 = Encoder(dim=opt.dim, n_downsample=opt.n_downsample, shared_block=shared_E)
+    E2 = Encoder(dim=opt.dim, n_downsample=opt.n_downsample, shared_block=shared_E)
+
+    shared_G = ResidualBlock(in_channels=shared_dim)
+    G1 = Generator(dim=opt.dim, n_upsample=opt.n_downsample, shared_block=shared_G)
+    G2 = Generator(dim=opt.dim, n_upsample=opt.n_downsample, shared_block=shared_G)
+
+    D1 = Discriminator(input_shape)
+    D2 = Discriminator(input_shape)
 
     # Initialize weights
-    G_AB.apply(weights_init_normal)
-    G_BA.apply(weights_init_normal)
-    D_A.apply(weights_init_normal)
-    D_B.apply(weights_init_normal)
+    E1.apply(weights_init_normal)
+    E2.apply(weights_init_normal)
+    G1.apply(weights_init_normal)
+    G2.apply(weights_init_normal)
+    D1.apply(weights_init_normal)
+    D2.apply(weights_init_normal)
 
     # Loss function
     adversarial_loss = torch.nn.MSELoss()
-    cycle_loss = torch.nn.L1Loss()
-    identity_loss = torch.nn.L1Loss()
+    pixel_loss = torch.nn.L1Loss()
 
     if cuda:
-        G_AB.cuda()
-        G_BA.cuda()
-        D_A.cuda()
-        D_B.cuda()
-        adversarial_loss.cuda()
-        cycle_loss.cuda()
-        identity_loss.cuda()
+        E1 = E1.cuda()
+        E2 = E2.cuda()
+        G1 = G1.cuda()
+        G2 = G2.cuda()
+        D1 = D1.cuda()
+        D2 = D2.cuda()
+        adversarial_loss = adversarial_loss.cuda()
+        pixel_loss = pixel_loss.cuda()
 
     # Optimizers
     optimizer_G = torch.optim.Adam(itertools.chain(G_AB.parameters(), G_BA.parameters()), lr=opt.lr, betas=(opt.b1, opt.b2))
