@@ -62,12 +62,18 @@ def stack_img(image_path):
 def create_gif(image_path):
     frames = []
     gif_name = os.path.join("images", 'display.gif')
-
     image_list = os.listdir(image_path)
-    sorted(image_list)
 
-    for image_name in image_list:
-        frames.append(imageio.imread(os.path.join(image_path, image_name)))
+    image_id = []
+    for name in image_list:
+        image_id.append(name[:-4])
+    sorted(image_id)
+
+    cnt = 0
+    for idx in image_id:
+        if cnt % 5 == 0:
+            frames.append(imageio.imread(os.path.join(image_path, str(idx) + '.png')))
+        cnt += 1
 
     imageio.mimsave(gif_name, frames, 'GIF', duration=0.1)
 
@@ -77,7 +83,7 @@ def resize_img(path):
     for name in names:
         img_path = os.path.join(path, name)
         img = Image.open(img_path)
-        img = img.resize((img.size[0] // 2, img.size[1] // 2))
+        img = img.resize((172, 172))
         img.save(img_path)
 
 
@@ -102,9 +108,9 @@ def save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor):
 
 
 if __name__ == "__main__":
-    # image_path = "images/example4"
-    # resize_img(image_path)
-    # create_gif(image_path)
+    image_path = "images/commic2human/example3"
+    resize_img(image_path)
+    create_gif(image_path)
 
-    resize_img("images1/1")
+    # resize_img("images1/1")
     # stack_img("images/test")

@@ -5,4 +5,6 @@ wgan-gp/data
 context-encoder/data
 pix2pix/data
 cyclegan/data
+cyclegan/images/art2real
+cyclegan/images/commic2human
 unit/data

@@ -155,7 +155,7 @@ Pix2Pix aims at converting an input image into a corresponding output image, suc
 * Generator is designed in the form of UNet
 * In infer.py, display_network() can be used to print the network architecture
 
-|             Training             |             Inferring             | 
+|             Training             |             Inferring             |
 | :------------------------------: | :------------------------------: |
 | ![display](pix2pix/images/display1.gif)| ![Infer](pix2pix/images/infer1.png) |
 
@@ -164,6 +164,7 @@ $ cd pix2pix
 $ python train.py
 $ python infer.py
 ```
+
 
 &emsp;
 
@@ -174,14 +175,22 @@ CycleGAN aims at converting an input image into a corresponding output image but
 * The discriminator adopts the idea of PatchGAN
 * CycleGAN has three types of loss functions: adversarial loss, identity loss and cycle-consistence loss.
 
-|             Training             |             Inferring             | 
-| :------------------------------: | :------------------------------: |
-| ![display](cyclegan/images/display.gif)| ![Infer](cyclegan/images/result.png) |
+|             Epoch(1-50)             |             Epoch(33-66)             |             Epoch(66-100)            |
+| :------------------------------: | :------------------------------: | :------------------------------: |
+| ![display1](cyclegan/images/display1.gif)| ![display2](cyclegan/images/display2.gif) | ![display3](cyclegan/images/display3.gif) |
 
 ```bash
-$ cd cyclegan
+$ cd pix2pix
 $ python train.py
 $ python infer.py
+```
+* we provide a tool to generate commic videos, just two steps can get the result
+  * ![display1](cyclegan/images/display.gif)
+  * create the directory named video
+  * put your video into it and named test.mp4
+  * then run the command
+```bash
+$ python tools.py
 ```
 
 &emsp;
