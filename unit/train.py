@@ -13,10 +13,11 @@ from dataloader import commic2human_loader
 
 
 def train():
-    os.makedirs("images", exist_ok=True)
-    os.makedirs("checkpoints", exist_ok=True)
-
     opt = parse_args()
+
+    os.makedirs("images/%s" % (opt.dataset), exist_ok=True)
+    os.makedirs("checkpoints/%s" % (opt.dataset), exist_ok=True)
+
     cuda = True if torch.cuda.is_available() else False
     FloatTensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 
