@@ -180,7 +180,7 @@ CycleGAN aims at converting an input image into a corresponding output image but
 | ![display1](cyclegan/images/display1.gif)| ![display2](cyclegan/images/display2.gif) | ![display3](cyclegan/images/display3.gif) |
 
 ```bash
-$ cd pix2pix
+$ cd cyclegan
 $ python train.py
 $ python infer.py
 ```

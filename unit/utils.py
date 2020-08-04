@@ -70,24 +70,19 @@ def resize_img(path):
         img.save(img_path)
 
 
-def save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor):
-    img_A, img_B = next(iter(test_loader))
-    G_AB.eval()
-    G_BA.eval()
+def save_sample(dataset, test_loader, batches_done, E1, E2, G1, G2, FloatTensor):
+    X1, X2 = next(iter(test_loader))
 
-    img_A = Variable(img_A.type(FloatTensor))
-    img_B = Variable(img_B.type(FloatTensor))
-    gen_A = G_BA(img_B)
-    gen_B = G_AB(img_A)
+    X1 = Variable(X1.type(FloatTensor))
+    X2 = Variable(X2.type(FloatTensor))
 
-    # Arange images along x-axis
-    img_A = make_grid(img_A, nrow=5, normalize=True)
-    img_B = make_grid(img_B, nrow=5, normalize=True)
-    gen_A = make_grid(gen_A, nrow=5, normalize=True)
-    gen_B = make_grid(gen_B, nrow=5, normalize=True)
+    _, Z1 = E1(X1)
+    _, Z2 = E2(X2)
+    fake_X1 = G1(Z2)
+    fake_X2 = G2(Z1)
 
-    samples = torch.cat((img_A.data, gen_B.data, img_B.data, gen_A.data), 1)
-    save_image(samples, "images/%d.png" % batches_done, normalize=True)
+    samples = torch.cat((X1.data, fake_X2.data, X2.data, fake_X1.data), 0)
+    save_image(samples, "images/%s/%d.png" % (dataset, batches_done), nrow=5, normalize=True)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ class ImageDataset(Dataset):
         return img_A, img_B
 
     def __len__(self):
-        return max(self.len_A, self.len_B)
+        return min(self.len_A, self.len_B)
 
 
 def commic2human_loader(opt, mode):

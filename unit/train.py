@@ -8,7 +8,7 @@ from torch.autograd import Variable
 
 from config import parse_args
 from utils import ReplayBuffer, save_sample
-from model import Generator, Discriminator, Encoder, ResidualBlock, LambdaLR, weights_init_normal
+from model import Generator, Discriminator, Encoder, ResidualBlock, compute_KL, LambdaLR, weights_init_normal
 from dataloader import commic2human_loader
 
 
@@ -34,8 +34,8 @@ def train():
     E2 = Encoder(dim=opt.dim, n_downsample=opt.n_downsample, shared_block=shared_E)
 
     shared_G = ResidualBlock(in_channels=shared_dim)
-    G1 = Generator(dim=opt.dim, n_upsample=opt.n_downsample, shared_block=shared_G)
-    G2 = Generator(dim=opt.dim, n_upsample=opt.n_downsample, shared_block=shared_G)
+    G1 = Generator(dim=opt.dim, n_upsample=opt.n_upsample, shared_block=shared_G)
+    G2 = Generator(dim=opt.dim, n_upsample=opt.n_upsample, shared_block=shared_G)
 
     D1 = Discriminator(input_shape)
     D2 = Discriminator(input_shape)
@@ -63,97 +63,96 @@ def train():
         pixel_loss = pixel_loss.cuda()
 
     # Optimizers
-    optimizer_G = torch.optim.Adam(itertools.chain(G_AB.parameters(), G_BA.parameters()), lr=opt.lr, betas=(opt.b1, opt.b2))
-    optimizer_D_A = torch.optim.Adam(D_A.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
-    optimizer_D_B = torch.optim.Adam(D_B.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+    optimizer_G = torch.optim.Adam(itertools.chain(E1.parameters(), E2.parameters(), G1.parameters(), G2.parameters()),
+                                   lr=opt.lr,
+                                   betas=(opt.b1, opt.b2))
+    optimizer_D1 = torch.optim.Adam(D1.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
+    optimizer_D2 = torch.optim.Adam(D2.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
     # Learning rate update schedulers
     lr_scheduler_G = torch.optim.lr_scheduler.LambdaLR(optimizer_G, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
-    lr_scheduler_D_A = torch.optim.lr_scheduler.LambdaLR(optimizer_D_A, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
-    lr_scheduler_D_B = torch.optim.lr_scheduler.LambdaLR(optimizer_D_B, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
-
-    # Buffers of previously generated samples
-    gen_A_buffer = ReplayBuffer()
-    gen_B_buffer = ReplayBuffer()
+    lr_scheduler_D1 = torch.optim.lr_scheduler.LambdaLR(optimizer_D1, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
+    lr_scheduler_D2 = torch.optim.lr_scheduler.LambdaLR(optimizer_D2, lr_lambda=LambdaLR(opt.epochs, 0, opt.decay_epoch).step)
 
     prev_time = time.time()
     for epoch in range(opt.epochs):
         for i, (img_A, img_B) in enumerate(train_loader):
 
             # Model inputs
-            img_A = Variable(img_A.type(FloatTensor))
-            img_B = Variable(img_B.type(FloatTensor))
+            X1 = Variable(img_A.type(FloatTensor))
+            X2 = Variable(img_B.type(FloatTensor))
 
             # Adversarial ground truths
-            valid = Variable(FloatTensor(img_A.shape[0], *D_A.output_shape).fill_(1.0), requires_grad=False)
-            fake = Variable(FloatTensor(img_A.shape[0], *D_A.output_shape).fill_(0.0), requires_grad=False)
+            valid = Variable(FloatTensor(img_A.shape[0], *D1.output_shape).fill_(1.0), requires_grad=False)
+            fake = Variable(FloatTensor(img_A.shape[0], *D1.output_shape).fill_(0.0), requires_grad=False)
 
-            # Configure input
-            gen_A = G_BA(img_B)
-            gen_B = G_AB(img_A)
+            # -----------------------------
+            # Train Encoders and Generators
+            # -----------------------------
 
-            recov_A = G_BA(gen_B)
-            recov_B = G_AB(gen_A)
+            # Get shared latent representation
+            mu1, Z1 = E1(X1)
+            mu2, Z2 = E2(X2)
 
-            gen_A_ = gen_A_buffer.push_and_pop(gen_A)
-            gen_B_ = gen_B_buffer.push_and_pop(gen_B)
+            # Reconstruct images
+            recon_X1 = G1(Z1)
+            recon_X2 = G2(Z2)
 
-            # ------------------
-            # Train Generator
-            # ------------------
+            # Translate images
+            fake_X1 = G1(Z2)
+            fake_X2 = G2(Z1)
 
-            G_AB.train()
-            G_BA.train()
+            # Cycle translation
+            mu1_, Z1_ = E1(fake_X1)
+            mu2_, Z2_ = E2(fake_X2)
+            cycle_X1 = G1(Z2_)
+            cycle_X2 = G2(Z1_)
 
-            optimizer_G.zero_grad()
+            # Losses for encoder and generator
+            id_loss_1 = opt.lambda_id * pixel_loss(recon_X1, X1)
+            id_loss_2 = opt.lambda_id * pixel_loss(recon_X2, X2)
 
-            # Identity loss
-            id_loss_A = identity_loss(G_BA(img_A), img_A)
-            id_loss_B = identity_loss(G_AB(img_B), img_B)
-            id_loss = (id_loss_A + id_loss_B) / 2
+            adv_loss_1 = opt.lambda_adv * adversarial_loss(D1(fake_X1), valid)
+            adv_loss_2 = opt.lambda_adv * adversarial_loss(D2(fake_X2), valid)
 
-            # Adversarial loss
-            g_adv_AB = adversarial_loss(D_B(gen_B), valid)
-            g_adv_BA = adversarial_loss(D_A(gen_A), valid)
-            g_adv = (g_adv_AB + g_adv_BA)/ 2
+            cyc_loss_1 = opt.lambda_cyc * pixel_loss(cycle_X1, X1)
+            cyc_loss_2 = opt.lambda_cyc * pixel_loss(cycle_X2, X2)
 
-            # Cycle loss
-            cyc_loss_A = cycle_loss(img_A, recov_A)
-            cyc_loss_B = cycle_loss(img_B, recov_B)
-            cyc_loss = (cyc_loss_A + cyc_loss_B) / 2
+            KL_loss_1 = opt.lambda_KL1 * compute_KL(mu1)
+            KL_loss_2 = opt.lambda_KL1 * compute_KL(mu2)
+            KL_loss_1_ = opt.lambda_KL2 * compute_KL(mu1_)
+            KL_loss_2_ = opt.lambda_KL2 * compute_KL(mu2_)
 
-            # generator loss
-            g_loss = g_adv + opt.lambda_cyc * cyc_loss + opt.lambda_id * id_loss
-            g_loss.backward()
+            # total loss for encoder and generator
+            G_loss = id_loss_1 + id_loss_2 \
+                     + adv_loss_1 + adv_loss_2 \
+                     + cyc_loss_1 + cyc_loss_2 + \
+                     KL_loss_1 + KL_loss_2 + KL_loss_1_ + KL_loss_2_
+
+            G_loss.backward()
             optimizer_G.step()
 
             # ----------------------
-            # Train Discriminator A
+            # Train Discriminator 1
             # ----------------------
 
-            optimizer_D_A.zero_grad()
+            optimizer_D1.zero_grad()
 
-            real_loss = adversarial_loss(D_A(img_A), valid)
-            fake_loss = adversarial_loss(D_A(gen_A_.detach()), fake)
-            d_loss_A = (real_loss + fake_loss) / 2
+            D1_loss = adversarial_loss(D1(X1), valid) + adversarial_loss(D1(fake_X1.detach()), fake)
+            D1_loss.backward()
 
-            d_loss_A.backward()
-            optimizer_D_A.step()
+            optimizer_D1.step()
 
             # ----------------------
-            # Train Discriminator B
+            # Train Discriminator 2
             # ----------------------
 
-            optimizer_D_B.zero_grad()
+            optimizer_D2.zero_grad()
 
-            real_loss = adversarial_loss(D_B(img_B), valid)
-            fake_loss = adversarial_loss(D_B(gen_B_.detach()), fake)
-            d_loss_B = (real_loss + fake_loss) / 2
+            D2_loss = adversarial_loss(D2(X2), valid) + adversarial_loss(D2(fake_X2.detach()), fake)
+            D2_loss.backward()
 
-            d_loss_B.backward()
-            optimizer_D_B.step()
-
-            d_loss = (d_loss_A + d_loss_B) / 2
+            optimizer_D2.step()
 
             # ------------------
             # Log Information
@@ -164,24 +163,27 @@ def train():
             time_left = datetime.timedelta(seconds=batches_left * (time.time() - prev_time))
             prev_time = time.time()
 
-            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f, adv: %f, cycle: %f, identity: %f] ETA: %s" %
-                  (epoch, opt.epochs, i, len(train_loader), d_loss.item(), g_loss.item(), g_adv.item(), cyc_loss.item(), id_loss.item(), time_left))
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f] ETA: %s" %
+                  (epoch, opt.epochs, i, len(train_loader), (D1_loss + D2_loss).item(), G_loss.item(), time_left))
 
             if batches_done % opt.sample_interval == 0:
-                save_sample(test_loader, batches_done, G_AB, G_BA, FloatTensor)
+                save_sample(opt.dataset, test_loader, batches_done, E1, E2, G1, G2, FloatTensor)
 
             if batches_done % opt.checkpoint_interval == 0:
-                torch.save(G_AB.state_dict(), "checkpoints/G_AB_%d.pth" % epoch)
-                torch.save(G_BA.state_dict(), "checkpoints/G_BA_%d.pth" % epoch)
-                # torch.save(discriminator.state_dict(), "checkpoints/discriminator_%d.pth" % epoch)
+                torch.save(E1.state_dict(), "checkpoints/%s/E1_%d.pth" % (opt.dataset, epoch))
+                torch.save(E2.state_dict(), "checkpoints/%s/E2_%d.pth" % (opt.dataset, epoch))
+                torch.save(G1.state_dict(), "checkpoints/%s/G1_%d.pth" % (opt.dataset, epoch))
+                torch.save(G2.state_dict(), "checkpoints/%s/G2_%d.pth" % (opt.dataset, epoch))
 
         # Update learning rates
         lr_scheduler_G.step()
-        lr_scheduler_D_A.step()
-        lr_scheduler_D_B.step()
+        lr_scheduler_D1.step()
+        lr_scheduler_D2.step()
 
-    torch.save(G_AB.state_dict(), "checkpoints/G_AB_done.pth")
-    torch.save(G_BA.state_dict(), "checkpoints/G_BA_done.pth")
+    torch.save(E1.state_dict(), "checkpoints/%s/E1_done.pth" % opt.dataset)
+    torch.save(E2.state_dict(), "checkpoints/%s/E2_done.pth" % opt.dataset)
+    torch.save(G1.state_dict(), "checkpoints/%s/G1_done.pth" % opt.dataset)
+    torch.save(G2.state_dict(), "checkpoints/%s/G2_done.pth" % opt.dataset)
     print("Training Process has been Done!")
 
 
