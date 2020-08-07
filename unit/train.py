@@ -181,6 +181,8 @@ def train():
         lr_scheduler_D1.step()
         lr_scheduler_D2.step()
 
+    torch.save(shared_E.state_dict(), "checkpoints/%s/shared_E_done.pth" % opt.dataset)
+    torch.save(shared_G.state_dict(), "checkpoints/%s/shared_G_done.pth" % opt.dataset)
     torch.save(E1.state_dict(), "checkpoints/%s/E1_done.pth" % opt.dataset)
     torch.save(E2.state_dict(), "checkpoints/%s/E2_done.pth" % opt.dataset)
     torch.save(G1.state_dict(), "checkpoints/%s/G1_done.pth" % opt.dataset)

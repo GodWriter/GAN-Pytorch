@@ -30,7 +30,7 @@ def parse_args():
     parser.add_argument('--dim', type=int, default=64, help='number of filters in first encoder layer')
     parser.add_argument('--sample_interval', type=int, default=100, help='interval between image samples')
     parser.add_argument('--checkpoint_interval', type=int, default=5000, help='interval between saving models')
-    parser.add_argument('--load_model', type=str, default='checkpoints/E1_done.pth,checkpoints/E2_done.pth', help='model to load')
+    parser.add_argument('--load_model', type=str, default='checkpoints/apple2orange/*_done.pth', help='model to load')
     parser.add_argument('--test_img', type=str, default='images/test.jpg', help='image to test')
 
     opt = parser.parse_args()

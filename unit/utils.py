@@ -10,33 +10,6 @@ from torch.autograd import Variable
 from torchvision.utils import save_image, make_grid
 
 
-class ReplayBuffer:
-    def __init__(self, max_size=50):
-        assert max_size > 0, "Empty buffer. Be careful."
-        self.max_size = max_size
-        self.data = []
-
-    def push_and_pop(self, data):
-        to_return = []
-
-        # element.size = batch_size
-        # if buffer is full, replace data in buffer randomly
-        for element in data.data:
-            element = torch.unsqueeze(element, 0)
-            if len(self.data) < self.max_size:
-                self.data.append(element)
-                to_return.append(element)
-            else:
-                if random.uniform(0, 1) > 0.5:
-                    i = random.randint(0, self.max_size - 1)
-                    to_return.append(self.data[i].clone())
-                    self.data[i] = element
-                else:
-                    to_return.append(element)
-
-        return Variable(torch.cat(to_return))
-
-
 def stack_img(image_path):
     imgs = []
 
@@ -50,13 +23,19 @@ def stack_img(image_path):
 
 def create_gif(image_path):
     frames = []
-    gif_name = os.path.join("images", 'display.gif')
-
+    gif_name = os.path.join("images", 'display2.gif')
     image_list = os.listdir(image_path)
-    sorted(image_list)
 
-    for image_name in image_list:
-        frames.append(imageio.imread(os.path.join(image_path, image_name)))
+    image_id = []
+    for name in image_list:
+        image_id.append(name[:-4])
+    sorted(image_id)
+
+    cnt = 0
+    for idx in image_id:
+        if cnt % 5 == 0:
+            frames.append(imageio.imread(os.path.join(image_path, str(idx) + '.png')))
+        cnt += 1
 
     imageio.mimsave(gif_name, frames, 'GIF', duration=0.1)
 
@@ -66,7 +45,7 @@ def resize_img(path):
     for name in names:
         img_path = os.path.join(path, name)
         img = Image.open(img_path)
-        img = img.resize((img.size[0] // 2, img.size[1] // 2))
+        img = img.resize((172, 172))
         img.save(img_path)
 
 
@@ -86,9 +65,6 @@ def save_sample(dataset, test_loader, batches_done, E1, E2, G1, G2, FloatTensor)
 
 
 if __name__ == "__main__":
-    # image_path = "images/example4"
+    image_path = "images/example2"
     # resize_img(image_path)
-    # create_gif(image_path)
-
-    resize_img("images1/1")
-    # stack_img("images/test")
+    create_gif(image_path)

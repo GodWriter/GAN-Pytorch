@@ -11,8 +11,8 @@ Pytorch implementations of Generative Adversarial Network algorithms.
 * Pix2Pix
 * CycleGAN
 * Unit
-* MUnit
 * StarGAN
+* MUnit
 * SRGAN
 * ESRGAN
 
@@ -196,5 +196,22 @@ $ python tools.py
 &emsp;
 
 #### Unit
-Unit aims at....
+Unit aims at projects images in different domains to a shared latent space and then exchange their domains.
 * when push into the latent space, the latent variable z are mixed with them
+* The total network has two shared structure.
+* In infer.py, display_network() can be used to print the network architecture
+
+|             Epoch(1-50)          |             Epoch(50-100)          |
+| :------------------------------: | :------------------------------: |
+| ![display](unit/images/display1.gif)| ![Infer](unit/images/display2.gif) |
+
+```bash
+$ cd unit
+$ python train.py
+$ python infer.py
+```
+
+&emsp;
+
+#### StarGAN
+To be continued~
