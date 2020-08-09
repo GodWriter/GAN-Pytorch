@@ -25,7 +25,9 @@ def parse_args():
     parser.add_argument('--checkpoint_interval', type=int, default=5000, help='interval between saving models')
     parser.add_argument('--load_model', type=str, default='checkpoints/apple2orange/*_done.pth', help='model to load')
     parser.add_argument('--test_img', type=str, default='images/test.jpg', help='image to test')
-
+    parser.add_argument('--n_critic', type=int, default=5, help='number of training iterations for WGAN discriminator')
+    parser.add_argument('--selected_attrs', '--list', nargs='+', help='selected attributes for the CelebA dataset',
+                        default=["Black_Hair", "Blond_Hair", "Brown_Hair", "Male", "Young"])
     opt = parser.parse_args()
     print(opt)
 
