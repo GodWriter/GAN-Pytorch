@@ -6,7 +6,7 @@ def parse_args():
     parsing and configuration
     :return: parse_args
     """
-    desc = "Pytorch implementation of Pix2Pix"
+    desc = "Pytorch implementation of Unit"
     parser = argparse.ArgumentParser(description=desc)
 
     parser.add_argument('--epochs', type=int, default=100, help="training epochs")
