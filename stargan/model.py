@@ -1,14 +1,6 @@
 import torch
 import torch.nn as nn
 
-from torch.autograd import Variable
-
-
-def compute_KL(mu):
-    mu_2 = torch.pow(mu, 2)
-    loss = torch.mean(mu_2)
-    return loss
-
 
 def weights_init_normal(m):
     classname = m.__class__.__name__
