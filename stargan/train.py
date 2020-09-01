@@ -4,6 +4,7 @@ import torch
 import datetime
 
 import torch.nn.functional as F
+import torch.autograd as autograd
 import numpy as np
 
 from torch.autograd import Variable
@@ -15,6 +16,24 @@ from dataloader import celeba_loader
 
 def criterion_cls(logit, target):
     return F.binary_cross_entropy_with_logits(logit, target, size_average=False) / logit.size(0)
+
+
+def compute_gradient_penalty(D, real_samples, fake_samples, FloatTensor):
+    alpha = FloatTensor(np.random.random((real_samples.size(0), 1, 1, 1)))
+    interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True)
+    d_interpolates, _ = D(interpolates)
+    fake = Variable(FloatTensor(np.ones(d_interpolates.shape)), requires_grad=False)
+
+    gradients = autograd.grad(outputs=d_interpolates,
+                              inputs=interpolates,
+                              grad_outputs=fake,
+                              create_graph=True,
+                              retain_graph=True,
+                              only_inputs=True)[0]
+    gradients = gradients.view(gradients.size(0), -1)
+    gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+
+    return gradient_penalty
 
 
 def train():
@@ -35,7 +54,7 @@ def train():
 
     # Initialize generator and discriminator
     generator = Generator(opt.channels, opt.residual_blocks, c_dim)
-    discriminator = Discriminator(opt.channels, c_dim)
+    discriminator = Discriminator(opt.channels, opt.img_height, c_dim)
 
     # Initialize weights
     generator.apply(weights_init_normal)
@@ -73,15 +92,41 @@ def train():
             sampled_c = Variable(FloatTensor(np.random.randint(0, 2, (imgs.size(0), c_dim))))
             fake_imgs = generator(imgs, sampled_c)
 
-            # -----------------------------
-            # Train Generators
-            # -----------------------------
-            pass
-
             # ----------------------
             # Train Discriminator
             # ----------------------
-            pass
+
+            optimizer_D.zero_grad()
+
+            real_validity, pred_cls = discriminator(imgs)
+            fake_validity, _ = discriminator(fake_imgs.detach())
+            gradient_penalty = compute_gradient_penalty(discriminator, imgs.data, fake_imgs.data, FloatTensor)
+
+            d_adv_loss = -torch.mean(real_validity) + torch.mean(fake_validity) + opt.lambda_gp * gradient_penalty
+            d_cls_loss = criterion_cls(pred_cls, labels)
+            D_loss = d_adv_loss + opt.lambda_cls * d_cls_loss
+
+            D_loss.backward()
+            optimizer_D.step()
+
+            # -----------------------------
+            # Train Generators
+            # -----------------------------
+            optimizer_G.zero_grad()
+
+            if i % opt.n_critic == 0:
+                gen_imgs = generator(imgs, sampled_c)
+                recov_imgs = generator(gen_imgs, labels)
+
+                fake_validity, pred_cls = discriminator(gen_imgs)
+
+                g_adv_loss = -torch.mean(fake_validity)
+                g_cls_loss = criterion_cls(pred_cls, sampled_c)
+                g_rec_loss = cycle_loss(recov_imgs, imgs)
+                G_loss = g_adv_loss + opt.lambda_cls * g_cls_loss + opt.lambda_rec * g_rec_loss
+
+                G_loss.backward()
+                optimizer_G.step()
 
             # ------------------
             # Log Information
