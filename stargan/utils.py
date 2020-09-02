@@ -1,13 +1,12 @@
 import os
 import glob
 import torch
-import random
 import imageio
 import numpy as np
 
 from PIL import Image
 from torch.autograd import Variable
-from torchvision.utils import save_image, make_grid
+from torchvision.utils import save_image
 
 
 label_changes = [((0, 1), (1, 0), (2, 0)),  # Set to black hair
@@ -89,6 +88,7 @@ def save_sample(dataset, val_loader, batches_done, generator, c_dim, FloatTensor
         img_sample = torch.cat((img.data, gen_imgs), -1)
         img_samples = img_sample if img_samples is None else torch.cat((img_samples, img_sample), -2) # Add as row to generated samples
 
+    save_image(img_samples.view(1, *img_samples.shape), "images/%s/%d.png" % (dataset, batches_done), normalize=True)
 
 
 if __name__ == "__main__":
