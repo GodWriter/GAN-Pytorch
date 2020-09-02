@@ -10,6 +10,14 @@ from torch.autograd import Variable
 from torchvision.utils import save_image, make_grid
 
 
+label_changes = [((0, 1), (1, 0), (2, 0)),  # Set to black hair
+                 ((0, 0), (1, 1), (2, 0)),  # Set to blonde hair
+                 ((0, 0), (1, 0), (2, 1)),  # Set to brown hair
+                 ((3, -1),),  # Flip gender
+                 ((4, -1),),  # Age flip
+                 ]
+
+
 def stack_img(image_path):
     imgs = []
 
@@ -50,18 +58,7 @@ def resize_img(path):
 
 
 def save_sample(dataset, test_loader, batches_done, E1, E2, G1, G2, FloatTensor):
-    X1, X2 = next(iter(test_loader))
-
-    X1 = Variable(X1.type(FloatTensor))
-    X2 = Variable(X2.type(FloatTensor))
-
-    _, Z1 = E1(X1)
-    _, Z2 = E2(X2)
-    fake_X1 = G1(Z2)
-    fake_X2 = G2(Z1)
-
-    samples = torch.cat((X1.data, fake_X2.data, X2.data, fake_X1.data), 0)
-    save_image(samples, "images/%s/%d.png" % (dataset, batches_done), nrow=5, normalize=True)
+    pass
 
 
 if __name__ == "__main__":
